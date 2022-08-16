@@ -46,8 +46,8 @@ class VADayView: UIView {
         return stack
     }
     
-    private let dotSpacing: CGFloat = 5
-    private let dotSize: CGFloat = 5
+    private let dotSpacing: CGFloat = 6
+    private let dotSize: CGFloat = 6
     private var supplementaryViews = [UIView]()
     private let dateLabel = UILabel()
     
@@ -72,6 +72,7 @@ class VADayView: UIView {
     }
     
     func setupDay() {
+        updateSupplementaryViews()
         let shortestSide: CGFloat = (frame.width < frame.height ? frame.width : frame.height)
         let side: CGFloat = shortestSide * (dayViewAppearanceDelegate?.selectedArea?() ?? 0.8)
         
@@ -81,14 +82,12 @@ class VADayView: UIView {
         dateLabel.frame = CGRect(
             x: 0,
             y: 0,
-            width: side,
-            height: side
+            width: 30.0,
+            height: 30.0
         )
         dateLabel.center = CGPoint(x: frame.width / 2, y: frame.height / 2)
-
         setState(day.state)
         addSubview(dateLabel)
-        updateSupplementaryViews()
     }
     
     @objc
@@ -102,13 +101,13 @@ class VADayView: UIView {
             dateLabel.clipsToBounds = true
             dateLabel.layer.cornerRadius = dateLabel.frame.height / 2
         }
-
+        dateLabel.font = dayViewAppearanceDelegate?.font?(for: day.state) ?? dateLabel.font
         if Calendar.current.isDateInToday(day.date) && state == .available {
             dateLabel.textColor = dayViewAppearanceDelegate?.textColor?(for: .today)
-            dateLabel.font = dayViewAppearanceDelegate?.font?(for: .today)
         } else if Date().compare(day.date) == .orderedDescending && state == .available && state != .selected {
             dateLabel.textColor = dayViewAppearanceDelegate?.textColor?(for: .past)
-            dateLabel.font = dayViewAppearanceDelegate?.font?(for: .past)
+        } else if !Calendar.current.isDateInToday(day.date) && state == .selected {
+            dateLabel.textColor = dayViewAppearanceDelegate?.textColor?(for: state) ?? dateLabel.textColor
         } else {
             dateLabel.textColor = dayViewAppearanceDelegate?.textColor?(for: state) ?? dateLabel.textColor
         }
@@ -136,10 +135,9 @@ class VADayView: UIView {
                 }
                 let spaceOffset = CGFloat(colors.count - 1) * dotSpacing
                 let stackWidth = CGFloat(colors.count) * dotSpacing + spaceOffset
-                
                 let verticalOffset = dayViewAppearanceDelegate?.dotBottomVerticalOffset?(for: day.state) ?? 2
-                stack.frame = CGRect(x: 0, y: dateLabel.frame.maxY + verticalOffset, width: stackWidth, height: dotSize)
-                stack.center.x = dateLabel.center.x
+                stack.frame = CGRect(x: -10, y: 12, width: stackWidth, height: dotSize)
+                stack.center.x = dateLabel.center.x + 16
                 addSubview(stack)
                 supplementaryViews.append(stack)
             }

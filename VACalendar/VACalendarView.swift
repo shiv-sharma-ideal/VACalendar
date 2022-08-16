@@ -43,14 +43,15 @@ public class VACalendarView: UIScrollView {
     
     public var scrollDirection: VACalendarScrollDirection = .vertical
     // use this for vertical scroll direction
-    public var monthVerticalInset: CGFloat = 20
+    public var monthVerticalInset: CGFloat = 6
     public var monthVerticalHeaderHeight: CGFloat = 20
     
     public var startDate = Date()
     public var showDaysOut = true
     public var selectionStyle: VASelectionStyle = .single
+    public var backgroundColors: UIColor?
     
-    private var calculatedWeekHeight: CGFloat = 100
+    private var calculatedWeekHeight: CGFloat = 150
     private let calendar: VACalendar
     private var monthViews = [VAMonthView]()
     private let maxNumberOfWeek = 6
@@ -60,7 +61,7 @@ public class VACalendarView: UIScrollView {
         case .horizontal:
             return frame.height / CGFloat(maxNumberOfWeek)
         case .vertical:
-            return frame.width / CGFloat(numberDaysInWeek)
+            return (frame.width) / CGFloat(numberDaysInWeek)
         }
     }
     private var viewType: VACalendarViewType = .month
@@ -163,9 +164,9 @@ public class VACalendarView: UIScrollView {
             }
         case .vertical:
             let monthsHeight: CGFloat = calendar.months.enumerated().reduce(0) { result, item in
-                let inset: CGFloat = item.offset == calendar.months.count - 1  ? 0.0 : monthVerticalInset
+                let inset: CGFloat = 0.0
                 let height = CGFloat(item.element.numberOfWeeks) * weekHeight + inset + monthVerticalHeaderHeight
-                return CGFloat(result) + height
+                return CGFloat(result) + height + 78.0
             }
             contentSize.height = monthsHeight
         }
@@ -173,7 +174,11 @@ public class VACalendarView: UIScrollView {
     
     private func setupMonths() {
         monthViews = calendar.months.map {
-            VAMonthView(month: $0, showDaysOut: showDaysOut, weekHeight: weekHeight, viewType: viewType)
+            VAMonthView(month: $0,
+                        showDaysOut: showDaysOut,
+                        weekHeight: weekHeight,
+                        viewType: viewType,
+                        backgroundColors: backgroundColors ?? .white)
         }
         
         monthViews.forEach { addSubview($0) }
@@ -188,16 +193,16 @@ public class VACalendarView: UIScrollView {
                 switch viewType {
                 case .month:
                     let x = index == 0 ? 0 : monthViews[index - 1].frame.maxX
-                    monthView.frame = CGRect(x: x, y: 0, width: self.frame.width, height: self.frame.height)
+                    monthView.frame = CGRect(x: 12, y: 0, width: (self.frame.width-24), height: self.frame.height)
                 case .week:
                     let x = index == 0 ? 0 : monthViews[index - 1].frame.maxX
                     let monthWidth = self.frame.width * CGFloat(monthView.numberOfWeeks)
                     monthView.frame = CGRect(x: x, y: 0, width: monthWidth, height: self.frame.height)
                 }
             case .vertical:
-                let y = index == 0 ? 0 : monthViews[index - 1].frame.maxY + monthVerticalInset
+                let y = index == 0 ? 6 : monthViews[index - 1].frame.maxY + monthVerticalInset
                 let height = (CGFloat(monthView.numberOfWeeks) * weekHeight) + monthVerticalHeaderHeight
-                monthView.frame = CGRect(x: 0, y: y, width: self.frame.width, height: height)
+                monthView.frame = CGRect(x: 0, y: y, width: (self.frame.width), height: height + 78.0)
             }
         }
     }

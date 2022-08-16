@@ -28,8 +28,8 @@ public struct VAWeekDaysViewAppearance {
         symbolsType: VAWeekDaysSymbolsType = .veryShort,
         weekDayTextColor: UIColor = .black,
         weekDayTextFont: UIFont = UIFont.systemFont(ofSize: 15),
-        leftInset: CGFloat = 10.0,
-        rightInset: CGFloat = 10.0,
+        leftInset: CGFloat = 0.0,
+        rightInset: CGFloat = 0.0,
         separatorBackgroundColor: UIColor = .lightGray,
         calendar: Calendar = Calendar.current) {
         self.symbolsType = symbolsType
@@ -69,28 +69,27 @@ public class VAWeekDaysView: UIView {
     public override func layoutSubviews() {
         super.layoutSubviews()
         
+        let separatorHeight = 1 / UIScreen.main.scale
+        separatorView.frame = CGRect(
+            x: 0,
+            y: 0,
+            width: frame.width,
+            height: separatorHeight
+        )
+
         let width = frame.width - (appearance.leftInset + appearance.rightInset)
         let dayWidth = width / CGFloat(dayLabels.count)
-        
+
         dayLabels.enumerated().forEach { index, label in
             let x = index == 0 ? appearance.leftInset : dayLabels[index - 1].frame.maxX
-
+            
             label.frame = CGRect(
                 x: x,
-                y: 0,
+                y: 1,
                 width: dayWidth,
                 height: self.frame.height
             )
         }
-        
-        let separatorHeight = 1 / UIScreen.main.scale
-        let separatorY = frame.height - separatorHeight
-        separatorView.frame = CGRect(
-            x: appearance.leftInset,
-            y: separatorY,
-            width: width,
-            height: separatorHeight
-        )
     }
     
     private func setupView() {

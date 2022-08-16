@@ -17,9 +17,11 @@ public protocol VAMonthViewAppearanceDelegate: class {
     @objc optional func leftInset() -> CGFloat
     @objc optional func rightInset() -> CGFloat
     @objc optional func verticalMonthTitleFont() -> UIFont
+    @objc optional func verticalWeekTitleFont() -> UIFont
     @objc optional func verticalMonthTitleColor() -> UIColor
     @objc optional func verticalCurrentMonthTitleColor() -> UIColor
     @objc optional func verticalMonthDateFormater() -> DateFormatter
+    @objc optional func seperatorColor() -> UIColor
 }
 
 class VAMonthView: UIView {
@@ -61,8 +63,19 @@ class VAMonthView: UIView {
     private var weekViews = [VAWeekView]()
     private let weekHeight: CGFloat
     private var viewType: VACalendarViewType
-    
-    init(month: VAMonth, showDaysOut: Bool, weekHeight: CGFloat, viewType: VACalendarViewType) {
+    private var weekDaysView: VAWeekDaysView?
+
+    let defaultCalendar: Calendar = {
+        var calendar = Calendar.current
+        calendar.firstWeekday = 1
+        return calendar
+    }()
+
+    init(month: VAMonth,
+         showDaysOut: Bool,
+         weekHeight: CGFloat,
+         viewType: VACalendarViewType,
+         backgroundColors: UIColor) {
         self.month = month
         self.showDaysOut = showDaysOut
         self.weekHeight = weekHeight
@@ -70,7 +83,8 @@ class VAMonthView: UIView {
         
         super.init(frame: .zero)
         
-        backgroundColor = .clear
+        backgroundColor = backgroundColors
+        layer.cornerRadius = 6.0
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -84,6 +98,7 @@ class VAMonthView: UIView {
         
         if scrollDirection == .vertical {
             setupMonthLabel()
+            setupWeekView()
         }
 
         self.weekViews = []
@@ -100,6 +115,7 @@ class VAMonthView: UIView {
     
     func clean() {
         monthLabel = nil
+        weekDaysView = nil
         weekViews = []
         subviews.forEach { $0.removeFromSuperview() }
     }
@@ -111,7 +127,7 @@ class VAMonthView: UIView {
     private func draw() {
         let leftInset = monthViewAppearanceDelegate?.leftInset?() ?? 0
         let rightInset = monthViewAppearanceDelegate?.rightInset?() ?? 0
-        let initialOffsetY = self.monthLabel?.frame.maxY ?? 0
+        let initialOffsetY = self.weekDaysView?.frame.maxY ?? 10
         let weekViewWidth = self.frame.width - (leftInset + rightInset)
         
         var x: CGFloat = leftInset
@@ -149,12 +165,30 @@ class VAMonthView: UIView {
 				let textFormatter = monthViewAppearanceDelegate?.verticalMonthDateFormater?() ?? VAFormatters.monthFormatter
         
         monthLabel = UILabel()
+        monthLabel?.frame = CGRect(x: 0, y: 12, width: self.frame.width, height: 24)
         monthLabel?.text = textFormatter.string(from: month.date)
         monthLabel?.textColor = textColor ?? monthLabel?.textColor
+        monthLabel?.textAlignment = .center
         monthLabel?.font = monthViewAppearanceDelegate?.verticalMonthTitleFont?() ?? monthLabel?.font
         monthLabel?.sizeToFit()
         monthLabel?.center.x = center.x
         addSubview(monthLabel ?? UIView())
+    }
+
+    private func setupWeekView() {
+        weekDaysView = VAWeekDaysView()
+        weekDaysView?.appearance = VAWeekDaysViewAppearance(symbolsType: .veryShort,
+                                                            weekDayTextColor: (monthViewAppearanceDelegate?.verticalMonthTitleColor?() ?? monthLabel?.textColor) ?? .black,
+                                                            weekDayTextFont: (monthViewAppearanceDelegate?.verticalWeekTitleFont?() ?? monthLabel?.font) ?? .systemFont(ofSize: 16.0),
+                                                            separatorBackgroundColor: (monthViewAppearanceDelegate?.seperatorColor?() ?? monthLabel?.textColor) ?? .black,
+                                                            calendar: defaultCalendar)
+        let leftInset = monthViewAppearanceDelegate?.leftInset?() ?? 0
+        let rightInset = monthViewAppearanceDelegate?.rightInset?() ?? 0
+        let weekViewWidth = self.frame.width - (leftInset + rightInset)
+        weekDaysView?.frame = CGRect(x: 0, y: (monthLabel?.frame.origin.y ?? 10.0) + (monthLabel?.frame.height ?? 70.0) + 12,
+                                     width: weekViewWidth,
+                                     height: 50.0)
+        addSubview(weekDaysView ?? UIView())
     }
     
 }
