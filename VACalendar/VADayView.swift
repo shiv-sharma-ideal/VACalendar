@@ -103,6 +103,7 @@ class VADayView: UIView {
         }
         dateLabel.font = dayViewAppearanceDelegate?.font?(for: day.state) ?? dateLabel.font
         if Calendar.current.isDateInToday(day.date) && state == .available {
+            dateLabel.font = dayViewAppearanceDelegate?.font?(for: .selected) ?? dateLabel.font
             dateLabel.textColor = dayViewAppearanceDelegate?.textColor?(for: .today)
         } else if Date().compare(day.date) == .orderedDescending && state == .available && state != .selected {
             dateLabel.textColor = dayViewAppearanceDelegate?.textColor?(for: .past)
